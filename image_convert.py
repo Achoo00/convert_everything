@@ -1,12 +1,15 @@
+# Converts images to "png" format
+
 from PIL import Image
 import os
 from tqdm import tqdm #Progress bar used in for loop
 
-os.startfile('C:\\Users\\amaha\\PycharmProjects\\converter\\input')
-path = os.chdir('C:\\Users\\amaha\\PycharmProjects\\converter\\input\\')
+os.startfile('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\input')
+path = os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\input')
+
 
 def img_type_input():
-    img_type = input("Converting WEBP [1] or JPG [2] or JFIF [3]?" + "")
+    img_type = input("Converting WEBP [1] or JPG [2] or JFIF [3]? or JPEG [4]" + "")
     if int(img_type) == 1:
         img_type = '.webp'
         fixed_filename=-9
@@ -16,8 +19,11 @@ def img_type_input():
     elif int(img_type) == 3:
         img_type = '.jfif'
         fixed_filename=-9
+    elif int(img_type) == 4:
+        img_type = '.jpeg'
+        fixed_filename=-9
     else:
-        print("Enter 1 or 2")
+        print("Enter # between 1 to 4")
         img_type_input()
     return img_type, fixed_filename
 
@@ -26,10 +32,10 @@ def start_input():
     start = input("Convert All [1] or Manual [2]:" + "")
     if int(start) == 1: # Converts all images in input
         for item in tqdm(os.listdir(path)):
-            os.chdir('C:\\Users\\amaha\\PycharmProjects\\converter\\input')
+            os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\input')
             if item.endswith(str(img_type)): # Converts every .webp to .png
                 im = Image.open(item)
-                os.chdir('C:\\Users\\amaha\\PycharmProjects\\converter\\output')
+                os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\output')
                 im.save(item + '.png')
         for filename in os.listdir(): # Removes .webp in image name
             if filename.endswith('png'):
@@ -37,7 +43,7 @@ def start_input():
     elif int(start) == 2: # Converts 1 manually typed image name
         image_name = input("Image name:")
         im = Image.open(image_name + str(img_type))
-        os.chdir('C:\\Users\\amaha\\PycharmProjects\\converter\\output')
+        os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\output')
         im.save(image_name + '.png')
     else:
         print("Enter 1 or 2")
@@ -45,4 +51,4 @@ def start_input():
 
 
 start_input()
-os.startfile('C:\\Users\\amaha\\PycharmProjects\\converter\\output')
+os.startfile('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\output')
