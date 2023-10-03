@@ -5,7 +5,6 @@ from tqdm import tqdm #Progress bar used in for loop
 os.startfile('C:\\Users\\amaha\\PycharmProjects\\converter\\input')
 path = os.chdir('C:\\Users\\amaha\\PycharmProjects\\converter\\input\\')
 
-
 def img_type_input():
     img_type = input("Converting WEBP [1] or JPG [2] or JFIF [3]?" + "")
     if int(img_type) == 1:
