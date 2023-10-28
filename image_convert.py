@@ -12,34 +12,28 @@ def img_type_input():
     img_type = input("Converting WEBP [1] or JPG [2] or JFIF [3]? or JPEG [4]" + "")
     if int(img_type) == 1:
         img_type = '.webp'
-        fixed_filename=-9
     elif int(img_type) == 2:
         img_type = '.jpg'
-        fixed_filename=-8
     elif int(img_type) == 3:
         img_type = '.jfif'
-        fixed_filename=-9
     elif int(img_type) == 4:
         img_type = '.jpeg'
-        fixed_filename=-9
     else:
         print("Enter # between 1 to 4")
         img_type_input()
-    return img_type, fixed_filename
+    return img_type
 
 def start_input():
-    img_type, fix_filename = img_type_input()
+    img_type = img_type_input()
     start = input("Convert All [1] or Manual [2]:" + "")
     if int(start) == 1: # Converts all images in input
         for item in tqdm(os.listdir(path)):
             os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\input')
             if item.endswith(str(img_type)): # Converts every .webp to .png
                 im = Image.open(item)
+                renamed_item = item.replace(img_type,"")
                 os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\output')
-                im.save(item + '.png')
-        for filename in os.listdir(): # Removes .webp in image name
-            if filename.endswith('png'):
-                os.rename(filename, filename[:fix_filename] + filename[-4:])
+                im.save(renamed_item + '.png')
     elif int(start) == 2: # Converts 1 manually typed image name
         image_name = input("Image name:")
         im = Image.open(image_name + str(img_type))
