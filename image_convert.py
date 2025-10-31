@@ -1,48 +1,192 @@
-# Converts images to "png" format
+#!/usr/bin/env python3
+"""
+Image Converter - Converts images to various formats with improved error handling and flexibility.
+"""
 
-from PIL import Image
 import os
-from tqdm import tqdm #Progress bar used in for loop
+import sys
+from pathlib import Path
+from PIL import Image
+from tqdm import tqdm
+import argparse
 
-os.startfile('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\input')
-path = os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\input')
+class ImageConverter:
+    def __init__(self, input_dir: str = None, output_dir: str = None):
+        self.input_dir = Path(input_dir or "input")
+        self.output_dir = Path(output_dir or "output")
+        
+        # Create directories if they don't exist
+        self.input_dir.mkdir(exist_ok=True)
+        self.output_dir.mkdir(exist_ok=True)
+        
+        # Supported input formats
+        self.supported_formats = {
+            '.webp': 'WebP',
+            '.jpg': 'JPEG', 
+            '.jpeg': 'JPEG',
+            '.jfif': 'JPEG',
+            '.png': 'PNG',
+            '.bmp': 'BMP',
+            '.tiff': 'TIFF',
+            '.gif': 'GIF'
+        }
+        
+        # Output format options
+        self.output_formats = {
+            'png': 'PNG',
+            'jpg': 'JPEG',
+            'jpeg': 'JPEG',
+            'webp': 'WebP',
+            'bmp': 'BMP'
+        }
 
+    def get_input_format(self):
+        """Get input format from user with validation."""
+        while True:
+            print("\nAvailable input formats:")
+            for i, (ext, name) in enumerate(self.supported_formats.items(), 1):
+                print(f"[{i}] {name} ({ext})")
+            
+            try:
+                choice = int(input("\nSelect input format (1-8): ").strip())
+                if 1 <= choice <= len(self.supported_formats):
+                    return list(self.supported_formats.keys())[choice-1]
+                else:
+                    print("Invalid choice. Please select a number between 1 and 8.")
+            except ValueError:
+                print("Please enter a valid number.")
+            except KeyboardInterrupt:
+                print("\nOperation cancelled.")
+                sys.exit(0)
 
-def img_type_input():
-    img_type = input("Converting WEBP [1] or JPG [2] or JFIF [3]? or JPEG [4]" + "")
-    if int(img_type) == 1:
-        img_type = '.webp'
-    elif int(img_type) == 2:
-        img_type = '.jpg'
-    elif int(img_type) == 3:
-        img_type = '.jfif'
-    elif int(img_type) == 4:
-        img_type = '.jpeg'
-    else:
-        print("Enter # between 1 to 4")
-        img_type_input()
-    return img_type
+    def get_output_format(self):
+        """Get output format from user."""
+        while True:
+            print("\nAvailable output formats:")
+            for i, (ext, name) in enumerate(self.output_formats.items(), 1):
+                print(f"[{i}] {name} (.{ext})")
+            
+            try:
+                choice = int(input("\nSelect output format (1-5): ").strip())
+                if 1 <= choice <= len(self.output_formats):
+                    return list(self.output_formats.keys())[choice-1]
+                else:
+                    print("Invalid choice. Please select a number between 1 and 5.")
+            except ValueError:
+                print("Please enter a valid number.")
+            except KeyboardInterrupt:
+                print("\nOperation cancelled.")
+                sys.exit(0)
 
-def start_input():
-    img_type = img_type_input()
-    start = input("Convert All [1] or Manual [2]:" + "")
-    if int(start) == 1: # Converts all images in input
-        for item in tqdm(os.listdir(path)):
-            os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\input')
-            if item.endswith(str(img_type)): # Converts every .webp to .png
-                im = Image.open(item)
-                renamed_item = item.replace(img_type,"")
-                os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\output')
-                im.save(renamed_item + '.png')
-    elif int(start) == 2: # Converts 1 manually typed image name
-        image_name = input("Image name:")
-        im = Image.open(image_name + str(img_type))
-        os.chdir('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\output')
-        im.save(image_name + '.png')
-    else:
-        print("Enter 1 or 2")
-        start_input()
+    def get_conversion_mode(self):
+        """Get conversion mode from user."""
+        while True:
+            print("\nConversion modes:")
+            print("[1] Convert all files of selected format")
+            print("[2] Convert single file manually")
+            
+            try:
+                choice = int(input("\nSelect mode (1-2): ").strip())
+                if choice in [1, 2]:
+                    return choice
+                else:
+                    print("Please select 1 or 2.")
+            except ValueError:
+                print("Please enter a valid number.")
+            except KeyboardInterrupt:
+                print("\nOperation cancelled.")
+                sys.exit(0)
 
+    def convert_single_image(self, filename: str, input_ext: str, output_ext: str):
+        """Convert a single image file."""
+        input_path = self.input_dir / f"{filename}{input_ext}"
+        output_path = self.output_dir / f"{filename}.{output_ext}"
+        
+        if not input_path.exists():
+            print(f"Error: File '{input_path}' not found.")
+            return False
+            
+        try:
+            with Image.open(input_path) as img:
+                # Convert to RGB if necessary (for JPEG output)
+                if output_ext.lower() in ['jpg', 'jpeg'] and img.mode in ('RGBA', 'LA', 'P'):
+                    img = img.convert('RGB')
+                elif output_ext.lower() == 'png' and img.mode == 'P':
+                    img = img.convert('RGBA')
+                
+                img.save(output_path, self.output_formats[output_ext])
+            return True
+        except Exception as e:
+            print(f"Error converting {filename}: {e}")
+            return False
 
-start_input()
-os.startfile('C:\\Users\\amaha\\VS_Python_Projects\\convert_everything\\output')
+    def convert_all_images(self, input_ext: str, output_ext: str):
+        """Convert all images of specified format."""
+        input_files = list(self.input_dir.glob(f"*{input_ext}"))
+        
+        if not input_files:
+            print(f"No {input_ext} files found in {self.input_dir}")
+            return
+        
+        print(f"Found {len(input_files)} {input_ext} files to convert.")
+        
+        success_count = 0
+        for input_path in tqdm(input_files, desc="Converting"):
+            filename = input_path.stem
+            if self.convert_single_image(filename, input_ext, output_ext):
+                success_count += 1
+        
+        print(f"\nConversion complete! {success_count}/{len(input_files)} files converted successfully.")
+
+    def open_directories(self):
+        """Open input and output directories in file explorer."""
+        try:
+            if os.name == 'nt':  # Windows
+                os.startfile(str(self.input_dir))
+                os.startfile(str(self.output_dir))
+            elif os.name == 'posix':  # macOS/Linux
+                os.system(f"open {self.input_dir}")
+                os.system(f"open {self.output_dir}")
+        except Exception as e:
+            print(f"Could not open directories: {e}")
+
+    def run(self):
+        """Main conversion workflow."""
+        print("=== Image Converter ===")
+        
+        # Open directories for user
+        self.open_directories()
+        
+        # Get user preferences
+        input_format = self.get_input_format()
+        output_format = self.get_output_format()
+        mode = self.get_conversion_mode()
+        
+        if mode == 1:
+            self.convert_all_images(input_format, output_format)
+        else:
+            filename = input("Enter filename (without extension): ").strip()
+            if self.convert_single_image(filename, input_format, output_format):
+                print("Conversion successful!")
+            else:
+                print("Conversion failed.")
+        
+        # Open output directory
+        try:
+            if os.name == 'nt':
+                os.startfile(str(self.output_dir))
+        except:
+            pass
+
+def main():
+    parser = argparse.ArgumentParser(description='Convert images between formats')
+    parser.add_argument('--input', '-i', help='Input directory path')
+    parser.add_argument('--output', '-o', help='Output directory path')
+    
+    args = parser.parse_args()
+    
+    converter = ImageConverter(args.input, args.output)
+    converter.run()
+
+if __name__ == "__main__":
+    main()
